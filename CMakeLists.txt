@@ -64,35 +64,35 @@ pico_add_extra_outputs(example-display-camera)
 
 ##########################################################
 
-add_executable(rpico-inversion 
-    rpico-inversion.c
-)
+# add_executable(rpico-inversion 
+#     rpico-inversion.c
+# )
 
-# pull in common dependencies
-target_link_libraries(
-  rpico-inversion
-  hardware_pwm
-  hardware_pio
-  hardware_spi
-  hardware_i2c
-  pico_stdlib
-# add the arducam camera's CMakeLists.txt library
-  arducam_hm01b0
-# add the arducam display's CMakeLists.txt library
-  LCD_st7735
+# # pull in common dependencies
+# target_link_libraries(
+#   rpico-inversion
+#   hardware_pwm
+#   hardware_pio
+#   hardware_spi
+#   hardware_i2c
+#   pico_stdlib
+# # add the arducam camera's CMakeLists.txt library
+#   arducam_hm01b0
+# # add the arducam display's CMakeLists.txt library
+#   LCD_st7735
 
-  hardware_dma
-  hardware_timer
-  hardware_watchdog
-  hardware_clocks
-)
+#   hardware_dma
+#   hardware_timer
+#   hardware_watchdog
+#   hardware_clocks
+# )
 
 
-pico_set_program_name(rpico-inversion "rpico-inversion")
-pico_set_program_version(rpico-inversion "0.1")
+# pico_set_program_name(rpico-inversion "rpico-inversion")
+# pico_set_program_version(rpico-inversion "0.1")
 
-pico_enable_stdio_uart(rpico-inversion 0)
-pico_enable_stdio_usb(rpico-inversion 1)
+# pico_enable_stdio_uart(rpico-inversion 0)
+# pico_enable_stdio_usb(rpico-inversion 1)
 
-# create map/bin/hex file etc.
-pico_add_extra_outputs(rpico-inversion)
+# # create map/bin/hex file etc.
+# pico_add_extra_outputs(rpico-inversion)
