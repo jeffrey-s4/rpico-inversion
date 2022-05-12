@@ -8,9 +8,14 @@
 #define MASK(n) ((uint8_t) (1 << (n)))
 #define MASK_ALL ((uint8_t) 11111111)
 
+#define BUTTON 20
+
 uint8_t image_data[96 * 96];
 struct arducam_config config;
 
+bool is_inverted = false;
+// if the last state of BUTTON was high
+bool is_high = false;      
 
 uint8_t invert_byte(uint8_t image_byte){
     image_byte = image_byte ^ MASK_ALL;
@@ -26,8 +31,12 @@ int main(){
   // start serial and mark LED
   stdio_init_all();
   const uint LED_PIN = PICO_DEFAULT_LED_PIN;
+
   gpio_init(LED_PIN);
+  gpio_init(BUTTON);
+
   gpio_set_dir(LED_PIN, GPIO_OUT);
+  gpio_set_dir(BUTTON, GPIO_IN);
 
   // start screen
   ST7735_Init();
@@ -61,19 +70,84 @@ int main(){
     uint8_t displayBufArr[96 * 96 * 2];
     uint8_t *displayBuf = (uint8_t*) &displayBufArr;
     uint16_t index = 0;
-    for (int x = 0; x < 96 * 96; x++) {
-      uint16_t imageRGB =
-          ST7735_COLOR565(
-              invert_byte(image_data[x]), 
-              invert_byte(image_data[x]), 
-              invert_byte(image_data[x])
-          );
-      displayBuf[index] = (uint8_t)(imageRGB >> 8) & 0xFF;
-      index++;
-      displayBuf[index] = (uint8_t)(imageRGB)&0xFF;
-      index++;
+    uint16_t imageRGB = (uint16_t) rand();
+    
+
+    if (gpio_get(BUTTON) == 0 && is_high == true){
+      if (is_inverted){
+        // displayBuf = normal_image(displayBuf);
+        for (int x = 0; x < 96 * 96; x++) {
+          imageRGB = ST7735_COLOR565( image_data[x], image_data[x], image_data[x] );
+          displayBuf[index] = (uint8_t)(imageRGB >> 8) & 0xFF;
+          index++;
+          displayBuf[index] = (uint8_t)(imageRGB)&0xFF;
+          index++;
+        }
+        is_inverted = false;
+      }
+      else{
+        // displayBuf = invert_image(displayBuf);
+        for (int x = 0; x < 96 * 96; x++) {
+          uint16_t inverted_byte = invert_byte(image_data[x]);
+          imageRGB = ST7735_COLOR565(inverted_byte, inverted_byte, inverted_byte);
+          displayBuf[index] = (uint8_t)(imageRGB >> 8) & 0xFF;
+          index++;
+          displayBuf[index] = (uint8_t)(imageRGB)&0xFF;
+          index++;
+        }
+        is_inverted = true;
+      }
+      is_high = false;
+    }
+    else if ((gpio_get(BUTTON) != 0 && is_high == true) ||
+                  (gpio_get(BUTTON) == 0 && is_high == false)){
+      if (is_inverted){
+        // displayBuf = invert_image(displayBuf);
+        for (int x = 0; x < 96 * 96; x++) {
+          uint16_t inverted_byte = invert_byte(image_data[x]);
+          imageRGB = ST7735_COLOR565(inverted_byte, inverted_byte, inverted_byte);
+          displayBuf[index] = (uint8_t)(imageRGB >> 8) & 0xFF;
+          index++;
+          displayBuf[index] = (uint8_t)(imageRGB)&0xFF;
+          index++;
+        }
+      }
+      else{
+        // displayBuf = normal_image(displayBuf);
+        for (int x = 0; x < 96 * 96; x++) {
+          imageRGB = ST7735_COLOR565( image_data[x], image_data[x], image_data[x] );
+          displayBuf[index] = (uint8_t)(imageRGB >> 8) & 0xFF;
+          index++;
+          displayBuf[index] = (uint8_t)(imageRGB)&0xFF;
+          index++;
+        }
+      }
+    }
+    else if (gpio_get(BUTTON) != 0 && is_high == false){
+      if (is_inverted){
+        // displayBuf = invert_image(displayBuf);
+        for (int x = 0; x < 96 * 96; x++) {
+          imageRGB = ST7735_COLOR565( image_data[x], image_data[x], image_data[x] );
+          displayBuf[index] = (uint8_t)(imageRGB >> 8) & 0xFF;
+          index++;
+          displayBuf[index] = (uint8_t)(imageRGB)&0xFF;
+          index++;
+        }
+      }
+      else{
+        // displayBuf = normal_image(displayBuf);
+        for (int x = 0; x < 96 * 96; x++) {
+          imageRGB = ST7735_COLOR565( image_data[x], image_data[x], image_data[x] );
+          displayBuf[index] = (uint8_t)(imageRGB >> 8) & 0xFF;
+          index++;
+          displayBuf[index] = (uint8_t)(imageRGB)&0xFF;
+          index++;
+        }
+      }
+      is_high = true;
     }
 
+    // draw image from the display buffer to the screen
     ST7735_DrawImage(0, 0, 96, 96, displayBuf);
     gpio_put(LED_PIN, 0);
 
